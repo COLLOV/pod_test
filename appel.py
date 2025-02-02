@@ -35,26 +35,32 @@ def analyser_image(chemin_image, question="Que voyez-vous sur cette image ?"):
             files = {'file': (os.path.basename(chemin_image), image_file)}
             params = {'question': question}
             
-            # Correction du endpoint pour correspondre à celui du script.py
-            url = "https://uqdl3tfgviiozj-8000.proxy.runpod.net/analyze"
+            # Test avec les deux formats d'URL possibles
+            urls = [
+                "https://uqdl3tfgviiozj-8000.proxy.runpod.net/analyze",
+                f"http://213.173.109.34:8000/analyze"  # IP de votre pod
+            ]
             
-            response = requests.post(
-                url,
-                files=files,
-                params=params,
-                verify=False,
-                timeout=30
-            )
-            
-            print(f"URL appelée : {url}")  # Pour debug
-            print(f"Status code : {response.status_code}")  # Pour debug
-            
-            if response.status_code == 200:
-                resultat = response.json()
-                print(f"Réponse du serveur : {resultat['response']}")
-            else:
-                print(f"Erreur : {response.status_code} - {response.text}")
-                
+            for url in urls:
+                print(f"\nTest avec URL : {url}")
+                try:
+                    response = requests.post(
+                        url,
+                        files=files,
+                        params=params,
+                        verify=False,
+                        timeout=5
+                    )
+                    print(f"Status code : {response.status_code}")
+                    if response.status_code == 200:
+                        resultat = response.json()
+                        print(f"Réponse du serveur : {resultat['response']}")
+                        return
+                    else:
+                        print(f"Erreur : {response.status_code} - {response.text}")
+                except Exception as e:
+                    print(f"Erreur avec {url}: {str(e)}")
+                    
     except Exception as e:
         print(f"Erreur lors de l'analyse de l'image : {str(e)}")
 
