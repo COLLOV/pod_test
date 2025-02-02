@@ -37,14 +37,16 @@ def analyser_image(chemin_image, question="Que voyez-vous sur cette image ?"):
             files = {'file': (os.path.basename(chemin_image), image_file)}
             params = {'question': question}
             
-            # URL du service dans le cluster (IP:PORT du pod cible)
-            url = "http://213.173.109.34:13088/analyze"
+            # Utiliser l'URL de l'API Gateway au lieu de l'IP directe
+            url = "https://uqdl3tfgviiozj-8000.proxy.runpod.net/analyze"
             
-            # Envoyer la requête au serveur
+            # Ajouter un timeout et désactiver la vérification SSL si nécessaire
             response = requests.post(
                 url,
                 files=files,
-                params=params
+                params=params,
+                verify=False,  # À utiliser uniquement si nécessaire
+                timeout=30
             )
             
             if response.status_code == 200:
