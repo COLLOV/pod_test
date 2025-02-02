@@ -35,8 +35,8 @@ def analyser_image(chemin_image, question="Que voyez-vous sur cette image ?"):
             files = {'file': (os.path.basename(chemin_image), image_file)}
             params = {'question': question}
             
-            # Utiliser le port 7860
-            url = "https://uqdl3tfgviiozj-7860.proxy.runpod.net/analyze"
+            # Utiliser le port 8000
+            url = "https://uqdl3tfgviiozj-8000.proxy.runpod.net/analyze"
             
             print(f"\nTest avec URL : {url}")
             try:
