@@ -1,5 +1,8 @@
-transformers>=4.37.0
+torch>=2.1.0
+torchvision>=0.16.0
+transformers>=4.40.0
 fastapi
+python-multipart
 uvicorn
-pydantic
-torch>=2.0.0 
+pillow>=10.1.0
+sentencepiece>=0.1.99 

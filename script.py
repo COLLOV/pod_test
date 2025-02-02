@@ -1,56 +1,48 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from fastapi import FastAPI, HTTPException
+from PIL import Image
+from transformers import AutoModel, AutoTokenizer
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Dict, Optional
 import uvicorn
+import io
 
 # Initialiser FastAPI
 app = FastAPI()
 
 # Modèle de données pour la requête
 class ChatRequest(BaseModel):
-    messages: List[Dict[str, str]]
+    question: str
 
 # Charger le modèle et le tokenizer
 def load_model():
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-4", trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(
-        "microsoft/phi-4",
-        torch_dtype=torch.bfloat16,
-        device_map="auto",
-        trust_remote_code=True
-    )
+    model = AutoModel.from_pretrained('openbmb/MiniCPM-V-2_6', 
+                                    trust_remote_code=True,
+                                    attn_implementation='sdpa', 
+                                    torch_dtype=torch.bfloat16)
+    model = model.eval().cuda()
+    tokenizer = AutoTokenizer.from_pretrained('openbmb/MiniCPM-V-2_6', 
+                                            trust_remote_code=True)
     return model, tokenizer
 
 model, tokenizer = load_model()
 
-def format_chat_prompt(messages):
-    prompt = ""
-    for message in messages:
-        role = message["role"]
-        content = message["content"]
-        prompt += f"<|im_start|>{role}<|im_sep|>{content}<|im_end|>\n"
-    prompt += "<|im_start|>assistant<|im_sep|>"
-    return prompt
-
-@app.post("/generate")
-async def generate(request: ChatRequest):
+@app.post("/analyze")
+async def analyze_image(file: UploadFile = File(...), question: str = "What is in the image?"):
     try:
-        # Formater le prompt
-        prompt = format_chat_prompt(request.messages)
+        # Lire et convertir l'image
+        image_data = await file.read()
+        image = Image.open(io.BytesIO(image_data)).convert('RGB')
         
-        # Tokenizer et générer
-        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-        outputs = model.generate(
-            inputs.input_ids,
-            max_new_tokens=512,
-            temperature=0.7,
-            do_sample=True,
-            pad_token_id=tokenizer.eos_token_id
+        # Préparer les messages
+        msgs = [{'role': 'user', 'content': [image, question]}]
+        
+        # Générer la réponse
+        response = model.chat(
+            image=None,
+            msgs=msgs,
+            tokenizer=tokenizer
         )
-        
-        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
         
         return {"response": response}
     
