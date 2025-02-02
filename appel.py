@@ -37,9 +37,12 @@ def analyser_image(chemin_image, question="Que voyez-vous sur cette image ?"):
             files = {'file': (os.path.basename(chemin_image), image_file)}
             params = {'question': question}
             
+            # URL du service dans le cluster (IP:PORT du pod cible)
+            url = "http://213.173.109.34:13088/analyze"
+            
             # Envoyer la requête au serveur
             response = requests.post(
-                'http://localhost:8000/analyze',
+                url,
                 files=files,
                 params=params
             )
