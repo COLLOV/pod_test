@@ -27,27 +27,27 @@ def analyser_image(chemin_image, question="Que voyez-vous sur cette image ?"):
         question (str): Question à poser sur l'image
     """
     try:
-        # Vérifier si l'image existe
         if not os.path.exists(chemin_image):
             print(f"Erreur : L'image {chemin_image} n'existe pas")
             return
 
-        # Préparer l'image pour l'envoi
         with open(chemin_image, 'rb') as image_file:
             files = {'file': (os.path.basename(chemin_image), image_file)}
             params = {'question': question}
             
-            # Utiliser l'URL de l'API Gateway au lieu de l'IP directe
+            # Correction du endpoint pour correspondre à celui du script.py
             url = "https://uqdl3tfgviiozj-8000.proxy.runpod.net/analyze"
             
-            # Ajouter un timeout et désactiver la vérification SSL si nécessaire
             response = requests.post(
                 url,
                 files=files,
                 params=params,
-                verify=False,  # À utiliser uniquement si nécessaire
+                verify=False,
                 timeout=30
             )
+            
+            print(f"URL appelée : {url}")  # Pour debug
+            print(f"Status code : {response.status_code}")  # Pour debug
             
             if response.status_code == 200:
                 resultat = response.json()
